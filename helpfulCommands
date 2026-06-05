@@ -1,0 +1,13 @@
+//Directory for sketch
+cd /home/arduino/ArduinoApps/marsrover/python/
+
+//restart main.py from commandline
+sudo pkill -f main.py
+sudo python3 main.py
+
+//find camera port
+v4l2-ctl --list-devices
+
+//Miscellaneous
+source /home/arduino/ArduinoApps/marsrover/.cache/.venv/bin/activate
+python3 main.py
