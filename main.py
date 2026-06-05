@@ -62,7 +62,8 @@ def camera_loop():
             time.sleep(0.5)
             continue
         with frame_lock:
-            cv2.putText(frame, latest_overlay, (85, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+            # Shifted X coordinate to 75 to clear the left bezel of the frame
+            cv2.putText(frame, latest_overlay, (75, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
             success, jpeg = cv2.imencode(".jpg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), 50])
             if success:
                 latest_jpeg = jpeg.tobytes()
@@ -97,12 +98,13 @@ threading.Thread(target=dht_loop, daemon=True).start()
 threading.Thread(target=servo_processing_loop, daemon=True).start()
 
 # ==============================================================================
-# 3. EXPLICIT WEB INTERFACE LAYOUT
+# 3. EXPLICIT WEB INTERFACE LAYOUT (WITH UNICODE ENCODING)
 # ==============================================================================
 INDEX_HTML = """
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>Rover Control Panel</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
@@ -148,10 +150,11 @@ class RoverRouter(BaseHTTPRequestHandler):
         parsed_url = urlparse(self.path)
         path = parsed_url.path
 
+        # FORCE EXPLICIT HOMEPAGE DELIVERY (With full Unicode text transmission support)
         if path == "/" or path == "" or path == "/index.html":
             self.send_response(200)
-            self.send_header("Content-Type", "text/html")
-            self.send_header("Content-Length", str(len(INDEX_HTML)))
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(INDEX_HTML.encode("utf-8"))))
             self.end_headers()
             self.wfile.write(INDEX_HTML.encode("utf-8"))
             return
